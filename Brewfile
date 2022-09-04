@@ -1,0 +1,13 @@
+tap "homebrew/bundle"
+tap "homebrew/core"
+brew "exa"
+brew "fish"
+brew "fortran-language-server"
+brew "ghq"
+brew "lua-language-server"
+brew "tree-sitter"
+brew "neovim"
+brew "node"
+brew "peco"
+brew "tmux"
+
