@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     locales \
     procps \
     wget \
+    gosu \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -45,11 +46,10 @@ COPY Brewfile /tmp/
 RUN brew bundle --file /tmp/Brewfile \
     && brew cleanup -s
 
-# Get my dotfiles with ghq    
-RUN ghq get https://github.com/Atnuhs/dotfiles.git \
-    && /root/ghq/github.com/Atnuhs/dotfiles/scripts/link.sh
-
 # Install Packer.nvim
 RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
         ~/.local/share/nvim/site/pack/packer/start/packer.nvim
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
