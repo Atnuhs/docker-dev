@@ -5,13 +5,6 @@ services:
     stdin_open: true
     image: authns/dev:2.0
     build:
-      context: .
       dockerfile: Dockerfile
     container_name: authns_dev_container
-    volumes:
-      - ${HOME}:${HOME}
-    environment:
-      - LOCAL_UID=${LOCAL_UID:?}
-      - LOCAL_GID=${LOCAL_GID:?}
-      - LOCAL_USER=${LOCAL_USER:?}
-    working_dir: ${HOME}
+
