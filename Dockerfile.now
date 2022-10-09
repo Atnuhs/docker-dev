@@ -1,0 +1,30 @@
+FROM homebrew/brew:latest
+
+ENV NONINTERACTIVE=True
+
+COPY ./files-copy-to-docker /tmp
+SHELL ["/bin/bash", "-c"]
+
+# Install brew and bundle
+RUN brew bundle --file /tmp/Brewfile \
+    && brew cleanup -s
+
+# Install Packer.nvim
+RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+        ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+
+RUN ghq get --shallow=true https://github.com/Atnuhs/dotfiles.git \
+    && ${HOME}/ghq/github.com/Atnuhs/dotfiles/scripts/link.sh
+
+RUN fish -c "curl -sL https://git.io/fisher | source \
+    && fisher install jorgebucaran/fisher \
+    oh-my-fish/theme-bobthefish \
+    jethrokuan/z "\
+    && sudo ln -s /home/linuxbrew/.linuxbrew/bin/fish /usr/bin/fish
+
+USER root
+RUN /tmp/change_apt_server_to_japan && \
+    /tmp/install_docker-compose
+
+WORKDIR "$HOME"
+CMD ["tmux", "-2"]

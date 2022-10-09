@@ -5,6 +5,8 @@ services:
     stdin_open: true
     image: authns/dev:2.0
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.now
+    volumes: 
+      - ${HOME}:/root/hostdir
     container_name: authns_dev_container
 
