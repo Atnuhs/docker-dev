@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# 依存パッケージインストール
+apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates curl gnupg lsb-release && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Dockerの公式GPGキーを追加
+mkdir -p /etc/apt-get/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg |
+    gpg --dearmor -o /etc/apt-get/keyrings/docker.gpg
+
+# Dockerリポジトリ登録
+echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt-get/keyrings/docker.gpg] \
+    https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" |
+        tee /etc/apt-get/sources.list.d/docker.list > /dev/null
+
+# Docker Engineのインストール
+apt-get update && \
+    apt-get install -y --no-install-recommends \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-compose-plugin && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/*
+
