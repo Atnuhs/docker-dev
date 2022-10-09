@@ -4,9 +4,9 @@ services:
     tty: true
     stdin_open: true
     image: authns/dev:2.0
-    build:
-      dockerfile: Dockerfile.now
+    build: .
     volumes: 
       - ${HOME}:/root/hostdir
+      - /var/run/docker.sock:/var/run/docker.sock
     container_name: authns_dev_container
 

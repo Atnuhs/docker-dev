@@ -1,18 +1,20 @@
 FROM ubuntu:latest
 
 ENV NONINTERACTIVE=True
-ENV TZ=Asia/Tokyo
+
 ENV LANG ja_JP.UTF-8
 ENV PATH /home/linuxbrew/.linuxbrew/bin:$PATH
 ENV PATH /home/linuxbrew/.linuxbrew/sbin:$PATH
-
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Set apt server at JP server
 # Install basic packages for get brew
-RUN perl -p -i.bak -e 's%(deb(?:-src|)\s+)https?://(?!archive\.canonical\.com|security\.ubuntu\.com)[^\s]+%$1http://ftp.riken.jp/Linux/ubuntu/%' /etc/apt/sources.list \
-    && apt-get update && apt-get install -y --no-install-recommends \
+COPY ./files-copy-to-docker/change_apt_server_to_japan /tmp/
+
+RUN /tmp/change_apt_server_to_japan \
+    && apt-get install -y --no-install-recommends \
     build-essential \
+    ca-certificates \
     curl \
     file \
     git \
@@ -21,16 +23,14 @@ RUN perl -p -i.bak -e 's%(deb(?:-src|)\s+)https?://(?!archive\.canonical\.com|se
     locales \
     procps \
     wget \
-    gosu \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install brew and bundle
-COPY Brewfile /tmp/
-RUN mkdir -p /etc/ssl/certs \
-    && wget --no-check-certificate http://curl.haxx.se/ca/cacert.pem \
-    && mv cacert.pem /etc/ssl/certs/ca-certificates.crt \
-    && /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" \
+COPY ./files-copy-to-docker/install_linuxbrew /tmp/
+COPY ./files-copy-to-docker/Brewfile /tmp/
+
+RUN /tmp/install_linuxbrew \
     && brew bundle --file /tmp/Brewfile \
     && brew cleanup -s 
 
@@ -38,16 +38,25 @@ RUN mkdir -p /etc/ssl/certs \
 RUN locale-gen ja_JP.UTF-8
 
 # Install Packer.nvim
-RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
-        ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+COPY ./files-copy-to-docker/install_packer /tmp
+RUN /tmp/install_packer
 
 RUN ghq get https://github.com/Atnuhs/dotfiles.git \
     && ${HOME}/ghq/github.com/Atnuhs/dotfiles/scripts/link.sh
 
-RUN fish -c "curl -sL https://git.io/fisher | source \
-    && fisher install jorgebucaran/fisher \
-    && fisher install oh-my-fish/theme-bobthefish" \
+COPY ./files-copy-to-docker/install_fisher /tmp
+
+RUN /tmp/install_fisher \
+    && fish -c "fisher install oh-my-fish/theme-bobthefish" \
     && ln -s /home/linuxbrew/.linuxbrew/bin/fish /usr/bin/fish
 
+COPY ./files-copy-to-docker/install_docker-compose /tmp
+RUN /tmp/install_docker-compose
+
+COPY ./files-copy-to-docker/install_win32yank /tmp
+RUN /tmp/install_win32yank
+
+COPY ./files-copy-to-docker /tmp
+
 WORKDIR /root
-CMD ["tmux", "-1"]
+CMD ["tmux", "-2"]
